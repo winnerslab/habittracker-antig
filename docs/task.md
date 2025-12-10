@@ -12,3 +12,5 @@
     - [x] Check `HabitCheckbox`
 - [x] Verify Performance Improvements <!-- id: 4 -->
     - [x] Run build verification
+- [x] Fix Vercel Build <!-- id: 5 -->
+    - [x] Create `.npmrc` with `legacy-peer-deps`
