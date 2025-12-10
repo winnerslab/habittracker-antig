@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useProfile } from "@/hooks/use-profile";
 import { useLoginStreak } from "@/hooks/use-login-streak";
 import { useSubscription } from "@/hooks/use-subscription";
-import { AchievementBadges } from "./achievement-badges";
-import { AvatarSelectionDialog } from "./avatar-selection-dialog";
+import dynamic from "next/dynamic";
+
+const AchievementBadges = dynamic(() => import("./achievement-badges").then((mod) => mod.AchievementBadges), { ssr: false });
+const AvatarSelectionDialog = dynamic(() => import("./avatar-selection-dialog").then((mod) => mod.AvatarSelectionDialog), { ssr: false });
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -81,12 +83,14 @@ export const UserProfile = ({ onSignOut }: UserProfileProps) => {
                                 </div>
                             )}
                         </div>
-                        <span className="text-xs sm:text-sm text-foreground hidden sm:flex items-center gap-1">
-                            {displayName}
-                            {isPro && (
-                                <BadgeCheck className="w-4 h-4 text-green-500 fill-green-500/20" />
-                            )}
-                        </span>
+                        <div className="hidden sm:flex flex-col items-start gap-0.5">
+                            <span className="text-xs sm:text-sm text-foreground font-medium leading-none">
+                                {displayName}
+                            </span>
+                            <span className="text-[10px] uppercase font-bold tracking-wider leading-none text-muted-foreground">
+                                {isPro ? "Premium User" : "Free User"}
+                            </span>
+                        </div>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48 bg-card border-border z-50">

@@ -97,6 +97,10 @@ export default {
                     "0%": { backgroundPosition: "200% center" },
                     "100%": { backgroundPosition: "-200% center" },
                 },
+                "burn-out": {
+                    "0%, 25%, 100%": { opacity: "1" },
+                    "50%, 80%": { opacity: "0" },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
@@ -104,6 +108,7 @@ export default {
                 "fade-in": "fade-in 0.3s ease-out",
                 "check-pop": "check-pop 0.2s ease-out",
                 "text-shimmer": "text-shimmer 8s linear infinite",
+                "burn-out": "burn-out 15s ease-in-out infinite",
             },
         },
     },

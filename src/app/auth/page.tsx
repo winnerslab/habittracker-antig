@@ -11,10 +11,13 @@ import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 
 const authSchema = z.object({
-    email: z.string().email("Please enter a valid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    fullName: z.string().min(1, "Please enter your full name").optional(),
+    email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+    password: z.string().min(1, "Password is required").min(6, "Password must be at least 6 characters"),
+    fullName: z.string().optional(),
 });
+
+
+
 
 export default function AuthPage() {
     const [mode, setMode] = useState<"login" | "signup" | "forgot">("login");
@@ -55,6 +58,10 @@ export default function AuthPage() {
 
     const validateForm = () => {
         if (mode === "forgot") {
+            if (!email) {
+                setErrors({ email: "Email is required" });
+                return false;
+            }
             const result = z.string().email().safeParse(email);
             if (!result.success) {
                 setErrors({ email: "Please enter a valid email address" });
@@ -82,7 +89,7 @@ export default function AuthPage() {
 
         // Additional validation for signup
         if (mode === "signup" && !fullName.trim()) {
-            setErrors({ fullName: "Please enter your full name" });
+            setErrors({ ...errors, fullName: "Please enter your full name" });
             return false;
         }
 
@@ -167,6 +174,9 @@ export default function AuthPage() {
         }
     };
 
+
+
+
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             {/* Animated background - Fizzling tick marks */}
@@ -203,14 +213,14 @@ export default function AuthPage() {
                 </div>
 
                 <div className="relative group">
-                    {/* Animated glowing border - Eclipse Effect */}
-                    <div className="absolute -inset-[2px] rounded-lg overflow-hidden">
+                    {/* Animated glowing border - Eclipse Effect with Intermittent Burnout */}
+                    <div className="absolute -inset-[2px] rounded-lg overflow-hidden animate-burn-out">
                         <div className="absolute inset-[-200%] bg-[conic-gradient(from_90deg_at_50%_50%,#00000000_50%,#22c55e00_60%,#22c55e20_80%,#22c55e_95%,#ffffff_100%)] animate-[spin_12s_linear_infinite]" />
                     </div>
                     {/* Inner black background to hide the full gradient, leaving only the border visible */}
                     <div className="absolute inset-[1px] bg-background rounded-lg z-0" />
 
-                    <div className="bg-card border border-border/50 rounded-lg p-6 space-y-6 relative z-10 backdrop-blur-xl">
+                    <div className="bg-card border border-border/50 rounded-lg p-8 space-y-8 relative z-10 backdrop-blur-xl">
                         {mode === "forgot" ? (
                             <button
                                 onClick={() => setMode("login")}
@@ -244,10 +254,12 @@ export default function AuthPage() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             {mode === "signup" && (
-                                <div className="space-y-4">
-                                    <Label htmlFor="fullName" className="text-foreground">Full Name</Label>
+                                <div className="space-y-2">
+                                    <Label htmlFor="fullName" className="text-foreground">
+                                        Full Name {errors.fullName && <span className="text-red-500">*</span>}
+                                    </Label>
                                     <Input
                                         id="fullName"
                                         type="text"
@@ -255,16 +267,17 @@ export default function AuthPage() {
                                         onChange={(e) => setFullName(e.target.value)}
                                         placeholder="John Doe"
                                         className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                        required
                                     />
                                     {errors.fullName && (
-                                        <p className="text-sm text-destructive">{errors.fullName}</p>
+                                        <p className="text-sm text-red-500">{errors.fullName}</p>
                                     )}
                                 </div>
                             )}
 
-                            <div className="space-y-4">
-                                <Label htmlFor="email" className="text-foreground">Email</Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-foreground">
+                                    Email {errors.email && <span className="text-red-500">*</span>}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -272,16 +285,28 @@ export default function AuthPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
                                     className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                    required
                                 />
                                 {errors.email && (
-                                    <p className="text-sm text-destructive">{errors.email}</p>
+                                    <p className="text-sm text-red-500">{errors.email}</p>
                                 )}
                             </div>
 
                             {mode !== "forgot" && (
-                                <div className="space-y-4">
-                                    <Label htmlFor="password" className="text-foreground">Password</Label>
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="password" className="text-foreground">
+                                            Password {errors.password && <span className="text-red-500">*</span>}
+                                        </Label>
+                                        {mode === "login" && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setMode("forgot")}
+                                                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                            >
+                                                Forgot Password?
+                                            </button>
+                                        )}
+                                    </div>
                                     <Input
                                         id="password"
                                         type="password"
@@ -289,10 +314,9 @@ export default function AuthPage() {
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••"
                                         className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                        required
                                     />
                                     {errors.password && (
-                                        <p className="text-sm text-destructive">{errors.password}</p>
+                                        <p className="text-sm text-red-500">{errors.password}</p>
                                     )}
                                 </div>
                             )}
@@ -308,42 +332,9 @@ export default function AuthPage() {
                             </Button>
                         </form>
 
-                        {mode !== "forgot" && (
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-border" />
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-card px-2 text-muted-foreground">Or</span>
-                                </div>
-                            </div>
-                        )}
 
-                        {mode !== "forgot" && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full"
-                                disabled={loading}
-                                onClick={async () => {
-                                    setLoading(true);
-                                    try {
-                                        const { error } = await supabase.auth.signInAnonymously();
-                                        if (error) {
-                                            toast.error(error.message);
-                                        } else {
-                                            toast.success("Welcome! You can create an account later to save your data.");
-                                        }
-                                    } catch (error) {
-                                        toast.error("An unexpected error occurred");
-                                    } finally {
-                                        setLoading(false);
-                                    }
-                                }}
-                            >
-                                Continue as Guest
-                            </Button>
-                        )}
+
+
                     </div>
                 </div>
             </div>

@@ -3,10 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import { HabitCheckbox } from "./habit-checkbox";
 import { HabitProgressBar } from "./habit-progress-bar";
-import { MonthlyChart } from "./monthly-chart";
-import { HabitFormDialog } from "./habit-form-dialog";
-import { BugReportDialog } from "./bug-report-dialog";
-import { UpgradeDialog } from "./upgrade-dialog";
+import dynamic from "next/dynamic";
+
+const MonthlyChart = dynamic(() => import("./monthly-chart").then((mod) => mod.MonthlyChart), {
+    loading: () => <div className="h-[300px] w-full bg-muted/10 animate-pulse rounded-lg" />,
+    ssr: false,
+});
+const HabitFormDialog = dynamic(() => import("./habit-form-dialog").then((mod) => mod.HabitFormDialog), { ssr: false });
+const BugReportDialog = dynamic(() => import("./bug-report-dialog").then((mod) => mod.BugReportDialog), { ssr: false });
+const UpgradeDialog = dynamic(() => import("./upgrade-dialog").then((mod) => mod.UpgradeDialog), { ssr: false });
 import { StreakCounter } from "./streak-counter";
 import { HabitStreakBadge } from "./habit-streak-badge";
 import { UserProfile } from "@/features/profile/components/user-profile";
@@ -81,6 +86,10 @@ export const HabitTracker = () => {
 
     // Navigate to previous month
     const goToPreviousMonth = () => {
+        if (!isPro) {
+            setUpgradeDialogOpen(true);
+            return;
+        }
         if (viewedMonth === 0) {
             setViewedMonth(11);
             setViewedYear(viewedYear - 1);
@@ -91,6 +100,10 @@ export const HabitTracker = () => {
 
     // Navigate to next month
     const goToNextMonth = () => {
+        if (!isPro) {
+            setUpgradeDialogOpen(true);
+            return;
+        }
         // Don't allow navigating beyond current month
         if (viewedYear === currentYear && viewedMonth === currentMonth) {
             return;
@@ -180,7 +193,7 @@ export const HabitTracker = () => {
                             {getDailyQuote(now)}
                         </p>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
                         <StreakCounter />
                         <UserProfile onSignOut={signOut} />
                     </div>

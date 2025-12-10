@@ -45,18 +45,24 @@ export const BugReportDialog = ({ open, onOpenChange }: BugReportDialogProps) =>
         setError(null);
 
         try {
-            const { data, error: fnError } = await supabase.functions.invoke("report-bug", {
-                body: {
+            const response = await fetch("/api/report-bug", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
                     summary: summary.trim(),
                     description: description.trim(),
                     stepsToReproduce: stepsToReproduce.trim(),
                     severity,
                     contactEmail: contactEmail.trim(),
-                },
+                }),
             });
 
-            if (fnError || !data?.ok) {
-                throw new Error(data?.error || fnError?.message || "Failed to send bug report");
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.error || "Failed to send bug report");
             }
 
             toast.success("Bug report sent, thank you!");

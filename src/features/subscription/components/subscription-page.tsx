@@ -41,8 +41,9 @@ export const SubscriptionPage = () => {
             setUpgradeLoading(true);
             await verifyPaystackPayment(refId);
             toast.success("Subscription upgraded successfully! 🚀");
-        } catch (error) {
-            toast.error("Payment successful but verification failed. Please contact support.");
+        } catch (error: any) {
+            console.error("Payment verification failed:", error);
+            toast.error(error.message || "Payment successful but verification failed. Please contact support.");
         } finally {
             setUpgradeLoading(false);
         }
