@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const authSchema = z.object({
     email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
@@ -26,6 +27,7 @@ export default function AuthPage() {
     const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
+    const [showVerification, setShowVerification] = useState(false);
     const router = useRouter();
 
     // Memoize tick animations - scattered across the background
@@ -186,7 +188,8 @@ export default function AuthPage() {
                         }).catch(err => console.error("Referral claim failed:", err));
                     }
 
-                    toast.success("Account created successfully!");
+                    // Show verification dialog
+                    setShowVerification(true);
                 }
             }
         } catch (error: any) {
@@ -360,6 +363,33 @@ export default function AuthPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Email Verification Dialog */}
+            <Dialog open={showVerification} onOpenChange={setShowVerification}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <Mail className="w-6 h-6 text-primary" />
+                        </div>
+                        <DialogTitle className="text-center text-xl">Check your inbox! 📧</DialogTitle>
+                        <DialogDescription className="text-center text-base pt-2">
+                            We&apos;ve sent you a verification link. Please click it to verify your email address so we can get you started!
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="sm:justify-center">
+                        <Button
+                            className="w-full sm:w-auto min-w-[120px]"
+                            onClick={() => {
+                                setShowVerification(false);
+                                setMode("login");
+                                toast.success("Redirecting to login...");
+                            }}
+                        >
+                            Continue
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
