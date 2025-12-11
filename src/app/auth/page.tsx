@@ -147,13 +147,16 @@ export default function AuthPage() {
                     toast.success("Welcome back!");
                 }
             } else {
-                const { error } = await supabase.auth.signUp({
+                const referralCode = localStorage.getItem("referral_code");
+
+                const { error, data } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
                         emailRedirectTo: `${window.location.origin}/`,
                         data: {
                             full_name: fullName.trim(),
+                            referred_by: referralCode, // Pass referral code in metadata
                         },
                     },
                 });
@@ -169,6 +172,20 @@ export default function AuthPage() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email, fullName }),
                     });
+
+                    // Attempt to claim referral reward if code exists
+                    if (referralCode && data.user) {
+                        // We don't await this to avoid blocking the UI, or we can catch errors silently
+                        fetch("/api/referrals/claim", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                referralCode,
+                                newUserId: data.user.id
+                            }),
+                        }).catch(err => console.error("Referral claim failed:", err));
+                    }
+
                     toast.success("Account created successfully!");
                 }
             }
