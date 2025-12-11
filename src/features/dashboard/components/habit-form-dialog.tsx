@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,20 @@ export const HabitFormDialog = ({ open, onOpenChange, habit, onSave, onDelete, o
     const [name, setName] = useState(habit?.name || "");
     const [emoji, setEmoji] = useState(habit?.emoji || "✨");
     const [goal, setGoal] = useState(habit?.goal || 30);
+
+    useEffect(() => {
+        if (open) {
+            if (habit) {
+                setName(habit.name);
+                setEmoji(habit.emoji);
+                setGoal(habit.goal);
+            } else {
+                setName("");
+                setEmoji("✨");
+                setGoal(30);
+            }
+        }
+    }, [habit, open]);
 
     const isEditing = !!habit;
 
@@ -102,8 +116,8 @@ export const HabitFormDialog = ({ open, onOpenChange, habit, onSave, onDelete, o
                                     type="button"
                                     onClick={() => setEmoji(e)}
                                     className={`w-11 h-11 sm:w-10 sm:h-10 text-lg sm:text-xl rounded-md transition-all touch-manipulation ${emoji === e
-                                            ? "bg-primary/20 ring-2 ring-primary"
-                                            : "bg-muted hover:bg-muted/80"
+                                        ? "bg-primary/20 ring-2 ring-primary"
+                                        : "bg-muted hover:bg-muted/80"
                                         }`}
                                 >
                                     {e}
