@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,36 @@ export default function ResetPasswordPage() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            // Check if we have a session (handled by Supabase from the URL fragment)
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                // If no session immediately, wait briefly for Supabase to process the hash
+                // This handles the race condition where the page loads before Supabase processes the #access_token
+                const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                    if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
+                        // Valid session established
+                    }
+                });
+
+                // Fallback: If still no session after 2 seconds, redirect
+                setTimeout(async () => {
+                    const { data: { session: currentSession } } = await supabase.auth.getSession();
+                    if (!currentSession) {
+                        toast.error("Invalid or expired reset link. Please try again.");
+                        router.push("/auth");
+                    }
+                }, 2000);
+
+                return () => subscription.unsubscribe();
+            }
+        };
+
+        checkSession();
+    }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
