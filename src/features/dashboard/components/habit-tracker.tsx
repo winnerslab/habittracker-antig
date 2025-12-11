@@ -66,7 +66,20 @@ export const HabitTracker = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+    const [showOnboarding, setShowOnboarding] = useState(false);
     const [namesCollapsed, setNamesCollapsed] = useState(false);
+
+    useEffect(() => {
+        const hasSeenOnboarding = localStorage.getItem("onboarding-completed");
+        if (!hasSeenOnboarding) {
+            setShowOnboarding(true);
+        }
+    }, []);
+
+    const handleOnboardingComplete = () => {
+        localStorage.setItem("onboarding-completed", "true");
+        setShowOnboarding(false);
+    };
     const [bugReportOpen, setBugReportOpen] = useState(false);
     const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -403,5 +416,8 @@ export const HabitTracker = () => {
 
         {/* Invite Dialog */}
         <InviteDialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
+
+        {/* Onboarding */}
+        {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
     </div>;
 };
