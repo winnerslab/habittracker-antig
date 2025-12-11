@@ -17,8 +17,8 @@ export async function POST(req: Request) {
 
         if (!success) {
             console.error('Failed to send signup notification:', errors);
-            // Don't fail the request for the user, just log it
-            return NextResponse.json({ success: false, errors }, { status: 500 });
+            // Return 200 so the UI doesn't think the signup failed, but include error details
+            return NextResponse.json({ success: false, warning: 'Notification failed', errors }, { status: 200 });
         }
 
         return NextResponse.json({ success: true });
