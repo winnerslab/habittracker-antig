@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sendTelegramMessage } from "@/lib/telegram";
 
 export async function POST(req: Request) {
     try {
@@ -24,43 +25,12 @@ ${stepsToReproduce || "Not provided"}
 📧 *Contact Email:* ${contactEmail || "Not provided"}
 `.trim();
 
-        const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-        const chatId = process.env.TELEGRAM_CHAT_ID;
+        const { success, errors } = await sendTelegramMessage(message);
 
-        console.log("Debug: Attempting to send Telegram message", {
-            hasToken: !!telegramToken,
-            hasChatId: !!chatId,
-            tokenLength: telegramToken?.length,
-            chatId
-        });
-
-        if (!telegramToken || !chatId) {
-            console.error('Telegram credentials missing in environment variables');
+        if (!success) {
+            console.error('Telegram API error:', errors);
             return NextResponse.json(
-                { error: 'Server configuration error: Missing credentials' },
-                { status: 500 }
-            );
-        }
-
-        const response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: chatId,
-                text: message,
-                parse_mode: 'Markdown',
-            }),
-        });
-
-        const data = await response.json();
-        console.log("Telegram API Response:", data);
-
-        if (!data.ok) {
-            console.error('Telegram API error:', data);
-            return NextResponse.json(
-                { error: `Telegram Error: ${data.description || 'Unknown error'}` },
+                { error: 'Partially failed to send notifications', details: errors },
                 { status: 500 }
             );
         }

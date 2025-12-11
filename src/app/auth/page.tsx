@@ -164,6 +164,11 @@ export default function AuthPage() {
                         toast.error(error.message);
                     }
                 } else {
+                    await fetch("/api/notify-signup", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email, fullName }),
+                    });
                     toast.success("Account created successfully!");
                 }
             }
