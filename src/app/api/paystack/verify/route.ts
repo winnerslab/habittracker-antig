@@ -3,13 +3,16 @@ import { createClient } from "@supabase/supabase-js";
 
 // Initialize Supabase Admin Client (Service Role)
 // Note: We need the SERVICE_ROLE_KEY to bypass RLS for subscription updates
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // Fallback to Anon if Service key missing (warn user)
-);
+// Moved inside the handler to prevent build-time errors if env vars are missing
+
 
 export async function POST(req: NextRequest) {
     try {
+        const supabaseAdmin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+
         const body = await req.json();
         const { reference } = body;
 
