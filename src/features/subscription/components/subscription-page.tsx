@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check, X, Loader2, CreditCard, XCircle, Lock } from "lucide-react";
+import { ArrowLeft, Check, X, Loader2, CreditCard, XCircle, Lock, Ticket } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { usePaystackPayment } from "react-paystack";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -13,8 +14,41 @@ import { toast } from "sonner";
 export const SubscriptionPage = () => {
     const router = useRouter();
     const { user } = useAuth();
-    const { subscription, loading, isPro, verifyPaystackPayment } = useSubscription();
+    const { subscription, loading, isPro, verifyPaystackPayment, refreshSubscription } = useSubscription();
     const [upgradeLoading, setUpgradeLoading] = useState(false);
+    const [promoCode, setPromoCode] = useState("");
+    const [redeemLoading, setRedeemLoading] = useState(false);
+
+    const handleRedeem = async () => {
+        if (!promoCode.trim()) return;
+        if (!user) {
+            toast.error("Please sign in first");
+            return;
+        }
+
+        setRedeemLoading(true);
+        try {
+            const res = await fetch("/api/promo/redeem", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ code: promoCode, userId: user.id }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast.error(data.error || "Invalid promo code");
+            } else {
+                toast.success(data.message || "Code redeemed successfully!");
+                await refreshSubscription();
+                setPromoCode("");
+            }
+        } catch (error) {
+            toast.error("Failed to redeem code");
+        } finally {
+            setRedeemLoading(false);
+        }
+    };
 
     // Paystack Config
     const config = {
@@ -280,6 +314,34 @@ export const SubscriptionPage = () => {
                         </Button>
                     </CardContent>
                 </Card>
+
+                {/* Promo Code Redemption */}
+                {!isPro && (
+                    <Card className="border-border mt-8">
+                        <CardHeader>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                                <Ticket className="w-4 h-4 text-primary" />
+                                Redeem Promo Code
+                            </CardTitle>
+                            <CardDescription>
+                                Enter a promo code to unlock special features
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex gap-3">
+                                <Input
+                                    placeholder="Enter code (e.g. LOCKED-IN)"
+                                    value={promoCode}
+                                    onChange={(e) => setPromoCode(e.target.value)}
+                                    className="uppercase font-mono"
+                                />
+                                <Button onClick={handleRedeem} disabled={redeemLoading || !promoCode}>
+                                    {redeemLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Redeem"}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Footer */}
                 <p className="text-center text-xs text-muted-foreground mt-8">
