@@ -7,12 +7,12 @@ const CHAT_IDS = [BASE_CHAT_ID, ADDITIONAL_CHAT_ID].filter(Boolean) as string[];
 
 export async function sendTelegramMessage(text: string): Promise<{ success: boolean; errors?: any[] }> {
     if (!TELEGRAM_BOT_TOKEN) {
-        console.warn("Telegram Bot Token is missing.");
+        console.error("CRITICAL: Telegram Bot Token is missing in environment variables.");
         return { success: false, errors: ["Missing Bot Token"] };
     }
 
     if (CHAT_IDS.length === 0) {
-        console.warn("No Telegram Chat IDs configured.");
+        console.error("CRITICAL: No Telegram Chat IDs configured in environment variables.");
         return { success: false, errors: ["Missing Chat IDs"] };
     }
 

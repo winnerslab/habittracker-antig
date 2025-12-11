@@ -17,4 +17,8 @@
 - [x] Debug Vercel "Failure to Fetch"
     - [x] Investigate missing environment variables
     - [x] Add error logging for Supabase client
+- [x] Debug Telegram Notifications on Vercel
+    - [x] Check `src/lib/telegram.ts` logic
+    - [x] Add improved error logging for missing Telegram keys
+    - [ ] Add Telegram environment variables to Vercel
 
