@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
 import { createDemoHabits } from "@/lib/demo-habits";
 
@@ -22,9 +23,21 @@ export interface HabitCompletion {
 
 export const useHabits = (year: number, month: number) => {
     const { user } = useAuth();
+    const { isPro } = useSubscription();
     const [habits, setHabits] = useState<Habit[]>([]);
-    const [completions, setCompletions] = useState<HabitCompletion>({});
+    const [completionsCache, setCompletionsCache] = useState<Record<string, HabitCompletion>>({});
+    // Use ref to access latest cache in loadData without triggering re-renders
+    const completionsCacheRef = useRef(completionsCache);
+
+    // Keep ref in sync
+    useEffect(() => {
+        completionsCacheRef.current = completionsCache;
+    }, [completionsCache]);
+
     const [loading, setLoading] = useState(true);
+
+    // Helper to get cache key
+    const getCacheKey = (y: number, m: number) => `${y}-${m}`;
 
     // Fetch habits
     const fetchHabits = useCallback(async () => {
@@ -45,13 +58,12 @@ export const useHabits = (year: number, month: number) => {
         setHabits(data || []);
     }, [user]);
 
-    // Fetch completions for the current month
-    const fetchCompletions = useCallback(async () => {
-        if (!user) return;
+    // Fetch completions for a specific month
+    const fetchMonthCompletions = async (targetYear: number, targetMonth: number) => {
+        if (!user) return null;
 
-        // Format dates without timezone conversion to avoid date shifting
-        const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(new Date(year, month + 1, 0).getDate()).padStart(2, '0')}`;
+        const startDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-01`;
+        const endDate = `${targetYear}-${String(targetMonth + 1).padStart(2, '0')}-${String(new Date(targetYear, targetMonth + 1, 0).getDate()).padStart(2, '0')}`;
 
         const { data, error } = await supabase
             .from("habit_completions")
@@ -61,15 +73,12 @@ export const useHabits = (year: number, month: number) => {
             .lte("completed_date", endDate);
 
         if (error) {
-            console.error("Error fetching completions:", error);
-            toast.error("Failed to load completions");
-            return;
+            console.error(`Error fetching completions for ${startDate}:`, error);
+            return null;
         }
 
-        // Transform data into the HabitCompletion format
         const completionsMap: HabitCompletion = {};
         data?.forEach((completion) => {
-            // Parse YYYY-MM-DD manually to avoid timezone issues
             const [y, m, d] = completion.completed_date.split('-').map(Number);
             const day = d;
 
@@ -79,18 +88,82 @@ export const useHabits = (year: number, month: number) => {
             completionsMap[completion.habit_id][day] = true;
         });
 
-        setCompletions(completionsMap);
-    }, [user, year, month]);
+        return completionsMap;
+    };
 
-    // Load data on mount
-    useEffect(() => {
-        const loadData = async () => {
-            if (!user) return;
+    // Load data
+    const loadData = useCallback(async () => {
+        if (!user) return;
 
+        // Determine which months to fetch
+        const currentKey = getCacheKey(year, month);
+        const monthsToFetch = [{ year, month, key: currentKey }];
+
+        // If Pro, preload adjacent months
+        if (isPro) {
+            const prevDate = new Date(year, month - 1, 1);
+            const nextDate = new Date(year, month + 1, 1);
+
+            monthsToFetch.push({
+                year: prevDate.getFullYear(),
+                month: prevDate.getMonth(),
+                key: getCacheKey(prevDate.getFullYear(), prevDate.getMonth())
+            });
+            monthsToFetch.push({
+                year: nextDate.getFullYear(),
+                month: nextDate.getMonth(),
+                key: getCacheKey(nextDate.getFullYear(), nextDate.getMonth())
+            });
+        }
+
+        // Check if current month is cached using Ref
+        const cache = completionsCacheRef.current;
+        const isCurrentCached = !!cache[currentKey];
+        if (!isCurrentCached) {
             setLoading(true);
-            await fetchHabits();
+        }
 
-            // Check if we need to create demo habits
+        // Identify missing keys
+        const missingMonths = monthsToFetch.filter(m => !cache[m.key]);
+
+        if (missingMonths.length === 0) {
+            if (!isCurrentCached) setLoading(false);
+            return;
+        }
+
+        // Fetch missing data
+        // We use a flag to track if we're still mounted/valid or just rely on async
+        const results = await Promise.all(
+            missingMonths.map(async (m) => {
+                const data = await fetchMonthCompletions(m.year, m.month);
+                return { key: m.key, data };
+            })
+        );
+
+        // Update cache
+        setCompletionsCache(prev => {
+            const next = { ...prev };
+            results.forEach(res => {
+                if (res.data) {
+                    next[res.key] = res.data;
+                }
+            });
+            return next;
+        });
+
+        if (!isCurrentCached) {
+            setLoading(false);
+        }
+    }, [user, year, month, isPro]); // Removed completionsCache dependency
+
+    // Initial load and updates
+    useEffect(() => {
+        if (!user) return;
+
+        const init = async () => {
+            await fetchHabits();
+            // Check demo habits logic only on initial mount or if empty? 
+            // Existing logic checked every mount. Keeping it simple.
             const { data: existingHabits } = await supabase
                 .from("habits")
                 .select("id")
@@ -99,17 +172,20 @@ export const useHabits = (year: number, month: number) => {
 
             if (!existingHabits || existingHabits.length === 0) {
                 await createDemoHabits(user.id);
-                await fetchHabits(); // Refresh to show demo habits
+                await fetchHabits();
             }
 
-            await fetchCompletions();
-            setLoading(false);
+            // loadData is triggered by separate effect below
         };
 
-        if (user) {
-            loadData();
-        }
-    }, [user, fetchHabits, fetchCompletions]);
+        init();
+    }, [user, fetchHabits]); // Run once on user change/mount
+
+    // Trigger loadData when month/year changes
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
 
     // Add habit
     const addHabit = async (habitData: { name: string; emoji: string; goal: number }) => {
@@ -184,10 +260,14 @@ export const useHabits = (year: number, month: number) => {
         }
 
         setHabits((prev) => prev.filter((h) => h.id !== id));
-        setCompletions((prev) => {
-            const newCompletions = { ...prev };
-            delete newCompletions[id];
-            return newCompletions;
+        setCompletionsCache((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach(key => {
+                const monthCompletions = { ...next[key] };
+                delete monthCompletions[id];
+                next[key] = monthCompletions;
+            });
+            return next;
         });
         toast.success("Habit deleted!");
     };
@@ -226,10 +306,14 @@ export const useHabits = (year: number, month: number) => {
         }
 
         // Clear local completions state for this habit
-        setCompletions((prev) => {
-            const newCompletions = { ...prev };
-            delete newCompletions[id];
-            return newCompletions;
+        setCompletionsCache((prev) => {
+            const next = { ...prev };
+            Object.keys(next).forEach(key => {
+                const monthCompletions = { ...next[key] };
+                delete monthCompletions[id];
+                next[key] = monthCompletions;
+            });
+            return next;
         });
 
         toast.success("Tracking history reset!");
@@ -241,7 +325,10 @@ export const useHabits = (year: number, month: number) => {
 
         // Format date without timezone conversion to avoid date shifting
         const completedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const isCompleted = completions[habitId]?.[day] === true;
+        const currentKey = `${year}-${month}`; // Hardcoded here as local helper is inside hook range but might need moving out if reused broadly
+        // Note: Using the same key format as getCacheKey
+
+        const isCompleted = completionsCache[currentKey]?.[habitId]?.[day] === true;
 
         if (isCompleted) {
             // Remove completion
@@ -258,13 +345,20 @@ export const useHabits = (year: number, month: number) => {
                 return;
             }
 
-            setCompletions((prev) => ({
-                ...prev,
-                [habitId]: {
-                    ...prev[habitId],
-                    [day]: false,
-                },
-            }));
+            setCompletionsCache((prev) => {
+                const next = { ...prev };
+                if (!next[currentKey]) next[currentKey] = {};
+                if (!next[currentKey][habitId]) next[currentKey][habitId] = {};
+
+                next[currentKey] = {
+                    ...next[currentKey],
+                    [habitId]: {
+                        ...next[currentKey][habitId],
+                        [day]: false
+                    }
+                };
+                return next;
+            });
         } else {
             // Add completion (upsert to handle duplicates gracefully)
             const { error } = await supabase
@@ -284,13 +378,20 @@ export const useHabits = (year: number, month: number) => {
                 return;
             }
 
-            setCompletions((prev) => ({
-                ...prev,
-                [habitId]: {
-                    ...prev[habitId],
-                    [day]: true,
-                },
-            }));
+            setCompletionsCache((prev) => {
+                const next = { ...prev };
+                if (!next[currentKey]) next[currentKey] = {};
+                if (!next[currentKey][habitId]) next[currentKey][habitId] = {};
+
+                next[currentKey] = {
+                    ...next[currentKey],
+                    [habitId]: {
+                        ...next[currentKey][habitId],
+                        [day]: true
+                    }
+                };
+                return next;
+            });
         }
 
         // Trigger streak recalculation
@@ -301,7 +402,7 @@ export const useHabits = (year: number, month: number) => {
 
     return {
         habits,
-        completions,
+        completions: completionsCache[`${year}-${month}`] || {},
         loading,
         addHabit,
         updateHabit,
