@@ -1,9 +1,10 @@
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const BASE_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const BASE_CHAT_IDS = (process.env.TELEGRAM_CHAT_ID || "").split(",").map(id => id.trim()).filter(Boolean);
 const ADDITIONAL_CHAT_ID = "5499383993";
 
-const CHAT_IDS = [BASE_CHAT_ID, ADDITIONAL_CHAT_ID].filter(Boolean) as string[];
+// Deduplicate IDs
+const CHAT_IDS = Array.from(new Set([...BASE_CHAT_IDS, ADDITIONAL_CHAT_ID]));
 
 export async function sendTelegramMessage(text: string): Promise<{ success: boolean; errors?: any[] }> {
     if (!TELEGRAM_BOT_TOKEN) {
