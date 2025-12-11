@@ -14,3 +14,7 @@
     - [x] Run build verification
 - [x] Fix Vercel Build <!-- id: 5 -->
     - [x] Create `.npmrc` with `legacy-peer-deps`
+- [x] Debug Vercel "Failure to Fetch"
+    - [x] Investigate missing environment variables
+    - [x] Add error logging for Supabase client
+
