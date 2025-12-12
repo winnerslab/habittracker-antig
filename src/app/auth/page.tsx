@@ -246,7 +246,7 @@ export default function AuthPage() {
                     <div className="absolute inset-[1px] bg-background rounded-lg z-0" />
 
                     <div className="bg-card border border-border/50 rounded-lg p-8 space-y-8 relative z-10 backdrop-blur-xl">
-                        {mode === "forgot" ? (
+                        {mode === "forgot" && (
                             <button
                                 onClick={() => setMode("login")}
                                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -254,29 +254,6 @@ export default function AuthPage() {
                                 <ArrowLeft className="w-4 h-4" />
                                 Back to login
                             </button>
-                        ) : (
-                            <div className="flex rounded-lg overflow-hidden border border-border">
-                                <button
-                                    type="button"
-                                    onClick={() => setMode("login")}
-                                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${mode === "login"
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-transparent text-muted-foreground hover:text-foreground"
-                                        }`}
-                                >
-                                    Sign In
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setMode("signup")}
-                                    className={`flex-1 py-2.5 text-sm font-medium transition-colors ${mode === "signup"
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-transparent text-muted-foreground hover:text-foreground"
-                                        }`}
-                                >
-                                    Sign Up
-                                </button>
-                            </div>
                         )}
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -355,6 +332,21 @@ export default function AuthPage() {
                                             ? "Create Account"
                                             : "Send Reset Link"}
                             </Button>
+
+                            {mode !== "forgot" && (
+                                <div className="text-center text-sm pt-2">
+                                    <span className="text-muted-foreground">
+                                        {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                                        className="text-primary hover:text-primary/80 font-medium transition-colors"
+                                    >
+                                        {mode === "login" ? "Sign Up" : "Sign In"}
+                                    </button>
+                                </div>
+                            )}
                         </form>
 
 
