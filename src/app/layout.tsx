@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaaS Application",
+  title: "INRSHA: Develop Unstoppable Momentum",
   description: "Production-grade SaaS",
 };
 
