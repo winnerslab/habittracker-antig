@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -222,19 +223,28 @@ export default function AuthPage() {
                 ))}
             </div>
             <div className="w-full max-w-md space-y-8 relative z-10">
-                <div className="text-center space-y-3">
+                <div className="text-center space-y-3 min-h-[100px]">
                     <h1 className="text-3xl font-bold text-foreground">Habit Tracker</h1>
-                    <p className={`text-lg text-muted-foreground ${mode === "login" ? "animate-text-shimmer bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-[length:200%_100%] bg-clip-text text-transparent" : ""}`}>
-                        {mode === "login" && (
-                            <>
-                                We are what we repeatedly do.
-                                <br />
-                                Excellence, then, is not an act, but a habit.
-                            </>
-                        )}
-                        {mode === "signup" && "Create an account to get started"}
-                        {mode === "forgot" && "Enter your email to reset password"}
-                    </p>
+                    <AnimatePresence mode="wait">
+                        <motion.p
+                            key={mode}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.2 }}
+                            className={`text-lg text-muted-foreground ${mode === "login" ? "animate-text-shimmer bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-[length:200%_100%] bg-clip-text text-transparent" : ""}`}
+                        >
+                            {mode === "login" && (
+                                <>
+                                    We are what we repeatedly do.
+                                    <br />
+                                    Excellence, then, is not an act, but a habit.
+                                </>
+                            )}
+                            {mode === "signup" && "Create an account to get started"}
+                            {mode === "forgot" && "Enter your email to reset password"}
+                        </motion.p>
+                    </AnimatePresence>
                 </div>
 
                 <div className="relative group">
@@ -256,98 +266,108 @@ export default function AuthPage() {
                             </button>
                         )}
 
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            {mode === "signup" && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="fullName" className="text-foreground">
-                                        Full Name {errors.fullName && <span className="text-red-500">*</span>}
-                                    </Label>
-                                    <Input
-                                        id="fullName"
-                                        type="text"
-                                        value={fullName}
-                                        onChange={(e) => setFullName(e.target.value)}
-                                        placeholder="John Doe"
-                                        className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                    />
-                                    {errors.fullName && (
-                                        <p className="text-sm text-red-500">{errors.fullName}</p>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={mode}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    {mode === "signup" && (
+                                        <div className="space-y-2">
+                                            <Label htmlFor="fullName" className="text-foreground">
+                                                Full Name {errors.fullName && <span className="text-red-500">*</span>}
+                                            </Label>
+                                            <Input
+                                                id="fullName"
+                                                type="text"
+                                                value={fullName}
+                                                onChange={(e) => setFullName(e.target.value)}
+                                                placeholder="John Doe"
+                                                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                                            />
+                                            {errors.fullName && (
+                                                <p className="text-sm text-red-500">{errors.fullName}</p>
+                                            )}
+                                        </div>
                                     )}
-                                </div>
-                            )}
 
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-foreground">
-                                    Email {errors.email && <span className="text-red-500">*</span>}
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
-                                    className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                />
-                                {errors.email && (
-                                    <p className="text-sm text-red-500">{errors.email}</p>
-                                )}
-                            </div>
-
-                            {mode !== "forgot" && (
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="password" className="text-foreground">
-                                            Password {errors.password && <span className="text-red-500">*</span>}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email" className="text-foreground">
+                                            Email {errors.email && <span className="text-red-500">*</span>}
                                         </Label>
-                                        {mode === "login" && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setMode("forgot")}
-                                                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                                            >
-                                                Forgot Password?
-                                            </button>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="you@example.com"
+                                            className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                                        />
+                                        {errors.email && (
+                                            <p className="text-sm text-red-500">{errors.email}</p>
                                         )}
                                     </div>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        placeholder="••••••••"
-                                        className="bg-background border-border text-foreground placeholder:text-muted-foreground"
-                                    />
-                                    {errors.password && (
-                                        <p className="text-sm text-red-500">{errors.password}</p>
+
+                                    {mode !== "forgot" && (
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="password" className="text-foreground">
+                                                    Password {errors.password && <span className="text-red-500">*</span>}
+                                                </Label>
+                                                {mode === "login" && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setMode("forgot")}
+                                                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                                                    >
+                                                        Forgot Password?
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <Input
+                                                id="password"
+                                                type="password"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                placeholder="••••••••"
+                                                className="bg-background border-border text-foreground placeholder:text-muted-foreground"
+                                            />
+                                            {errors.password && (
+                                                <p className="text-sm text-red-500">{errors.password}</p>
+                                            )}
+                                        </div>
                                     )}
-                                </div>
-                            )}
 
-                            <Button type="submit" className="w-full" disabled={loading}>
-                                {loading
-                                    ? "Loading..."
-                                    : mode === "login"
-                                        ? "Sign In"
-                                        : mode === "signup"
-                                            ? "Create Account"
-                                            : "Send Reset Link"}
-                            </Button>
+                                    <Button type="submit" className="w-full" disabled={loading}>
+                                        {loading
+                                            ? "Loading..."
+                                            : mode === "login"
+                                                ? "Sign In"
+                                                : mode === "signup"
+                                                    ? "Create Account"
+                                                    : "Send Reset Link"}
+                                    </Button>
 
-                            {mode !== "forgot" && (
-                                <div className="text-center text-sm pt-2">
-                                    <span className="text-muted-foreground">
-                                        {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                                        className="text-primary hover:text-primary/80 font-medium transition-colors"
-                                    >
-                                        {mode === "login" ? "Sign Up" : "Sign In"}
-                                    </button>
-                                </div>
-                            )}
-                        </form>
+                                    {mode !== "forgot" && (
+                                        <div className="text-center text-sm pt-2">
+                                            <span className="text-muted-foreground">
+                                                {mode === "login" ? "Don't have an account? " : "Already have an account? "}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setMode(mode === "login" ? "signup" : "login")}
+                                                className="text-primary hover:text-primary/80 font-medium transition-colors"
+                                            >
+                                                {mode === "login" ? "Sign Up" : "Sign In"}
+                                            </button>
+                                        </div>
+                                    )}
+                                </form>
+                            </motion.div>
+                        </AnimatePresence>
 
 
 
