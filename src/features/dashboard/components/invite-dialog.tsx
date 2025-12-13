@@ -36,7 +36,7 @@ export const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
                         Get 2 Months Free
                     </DialogTitle>
                     <DialogDescription>
-                        Invite a friend to join Habit Tracker. When they sign up using your link, you'll get 2 months of Premium for free!
+                        Invite a friend to join INRSHA. When they sign up using your link, you'll get 2 months of Premium for free!
                     </DialogDescription>
                 </DialogHeader>
 
@@ -60,8 +60,8 @@ export const InviteDialog = ({ open, onOpenChange }: InviteDialogProps) => {
                                 variant="outline"
                                 className="w-full"
                                 onClick={() => {
-                                    const subject = encodeURIComponent("Join me on Habit Tracker!");
-                                    const body = encodeURIComponent(`Hey! I've been using Habit Tracker to build better habits. Join me here and let's crush our goals: ${inviteLink}`);
+                                    const subject = encodeURIComponent("Join me on INRSHA!");
+                                    const body = encodeURIComponent(`Hey! I've been using INRSHA to build better habits. Join me here and let's crush our goals: ${inviteLink}`);
                                     window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
                                 }}
                             >

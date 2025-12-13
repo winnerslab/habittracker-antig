@@ -10,7 +10,7 @@ interface OnboardingProps {
 
 const steps = [
     {
-        title: "Welcome to Habit Tracker",
+        title: "Welcome to INRSHA",
         description: "Build better habits, one day at a time. Track your daily progress and achieve your goals.",
         icon: "👋",
     },

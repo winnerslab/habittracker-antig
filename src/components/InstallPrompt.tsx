@@ -78,7 +78,7 @@ export const InstallPrompt = () => {
             <Download className="w-6 h-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-foreground">Install Habit Tracker</h3>
+            <h3 className="font-semibold text-foreground">Install INRSHA</h3>
             <p className="text-sm text-muted-foreground mt-1">
               {isIOS
                 ? "Tap the share button and select 'Add to Home Screen'"

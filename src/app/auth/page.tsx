@@ -224,7 +224,7 @@ export default function AuthPage() {
             </div>
             <div className="w-full max-w-md space-y-8 relative z-10">
                 <div className="text-center space-y-3 min-h-[100px]">
-                    <h1 className="text-3xl font-bold text-foreground">Habit Tracker</h1>
+                    <h1 className="text-3xl font-bold text-foreground">INRSHA</h1>
                     <AnimatePresence mode="wait">
                         <motion.p
                             key={mode}
@@ -274,6 +274,23 @@ export default function AuthPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.2 }}
                             >
+                                {mode !== "forgot" && (
+                                    <div className="flex p-1 bg-muted/50 rounded-lg mb-6">
+                                        <button
+                                            onClick={() => setMode("login")}
+                                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === "login" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                        >
+                                            Sign In
+                                        </button>
+                                        <button
+                                            onClick={() => setMode("signup")}
+                                            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === "signup" ? "bg-background shadow text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                                        >
+                                            Sign Up
+                                        </button>
+                                    </div>
+                                )}
+
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     {mode === "signup" && (
                                         <div className="space-y-2">
@@ -350,21 +367,6 @@ export default function AuthPage() {
                                                     ? "Create Account"
                                                     : "Send Reset Link"}
                                     </Button>
-
-                                    {mode !== "forgot" && (
-                                        <div className="text-center text-sm pt-2">
-                                            <span className="text-muted-foreground">
-                                                {mode === "login" ? "Don't have an account? " : "Already have an account? "}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setMode(mode === "login" ? "signup" : "login")}
-                                                className="text-primary hover:text-primary/80 font-medium transition-colors"
-                                            >
-                                                {mode === "login" ? "Sign Up" : "Sign In"}
-                                            </button>
-                                        </div>
-                                    )}
                                 </form>
                             </motion.div>
                         </AnimatePresence>
