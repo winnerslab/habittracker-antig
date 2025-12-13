@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Check, X, Loader2, CreditCard, XCircle, Lock } from "lucide-react";
+import { ArrowLeft, Check, X, Loader2, CreditCard, XCircle, Lock, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { usePaystackPayment } from "react-paystack";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { useSubscription } from "@/hooks/use-subscription";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import dynamic from "next/dynamic";
+
+
+const InviteDialog = dynamic(() => import("@/features/dashboard/components/invite-dialog").then((mod) => mod.InviteDialog), { ssr: false });
 
 export const SubscriptionPage = () => {
     const router = useRouter();
     const { user } = useAuth();
     const { subscription, loading, isPro, verifyPaystackPayment, refreshSubscription } = useSubscription();
     const [upgradeLoading, setUpgradeLoading] = useState(false);
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
     // Paystack Config
     const config = {
@@ -96,6 +101,33 @@ export const SubscriptionPage = () => {
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">Subscription</h1>
                         <p className="text-muted-foreground">Manage your plan and billing</p>
+                    </div>
+                </div>
+
+
+                {/* Referral/Gift Banner */}
+                <div
+                    onClick={() => setInviteDialogOpen(true)}
+                    className="mb-8 p-4 rounded-lg bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/5 transition-all group"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <Gift className="w-5 h-5 text-green-500" />
+                        </div>
+                        <div className="flex-1">
+                            <h3 className="text-base font-semibold text-foreground flex items-center gap-2">
+                                Get 2 Months Free
+                                <span className="text-[10px] uppercase font-bold bg-green-500/20 text-green-500 px-2 py-0.5 rounded-full">New</span>
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                                Invite friends to join and unlock 2 months of Pro for free!
+                            </p>
+                        </div>
+                        <div className="hidden sm:block">
+                            <Button size="sm" variant="outline" className="border-green-500/30 text-green-500 hover:text-green-600 hover:bg-green-500/10">
+                                Invite Now
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -279,7 +311,8 @@ export const SubscriptionPage = () => {
                 <p className="text-center text-xs text-muted-foreground mt-8">
                     Built for Winners by WinnersLab 🏆
                 </p>
+                <InviteDialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
             </div>
-        </div>
+        </div >
     );
 };

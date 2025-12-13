@@ -12,7 +12,6 @@ const MonthlyChart = dynamic(() => import("./monthly-chart").then((mod) => mod.M
 const HabitFormDialog = dynamic(() => import("./habit-form-dialog").then((mod) => mod.HabitFormDialog), { ssr: false });
 const BugReportDialog = dynamic(() => import("./bug-report-dialog").then((mod) => mod.BugReportDialog), { ssr: false });
 const UpgradeDialog = dynamic(() => import("./upgrade-dialog").then((mod) => mod.UpgradeDialog), { ssr: false });
-const InviteDialog = dynamic(() => import("./invite-dialog").then((mod) => mod.InviteDialog), { ssr: false });
 import { StreakCounter } from "./streak-counter";
 import { HabitStreakBadge } from "./habit-streak-badge";
 import { UserProfile } from "@/features/profile/components/user-profile";
@@ -64,7 +63,6 @@ export const HabitTracker = () => {
     const { streaks, calculateStreak } = useHabitStreaks(user?.id);
     const { isPro, canAddMoreHabits, refreshSubscription } = useSubscription();
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [namesCollapsed, setNamesCollapsed] = useState(false);
@@ -209,15 +207,6 @@ export const HabitTracker = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-3 sm:gap-4 flex-shrink-0">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setInviteDialogOpen(true)}
-                            className="hidden sm:flex items-center gap-2 border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors"
-                        >
-                            <Gift className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-medium">Get 2 Months Free</span>
-                        </Button>
                         <StreakCounter />
                         <UserProfile onSignOut={signOut} />
                     </div>
@@ -413,9 +402,6 @@ export const HabitTracker = () => {
 
         {/* Upgrade Dialog */}
         <UpgradeDialog open={upgradeDialogOpen} onOpenChange={setUpgradeDialogOpen} />
-
-        {/* Invite Dialog */}
-        <InviteDialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen} />
 
         {/* Onboarding */}
         {showOnboarding && <Onboarding onComplete={handleOnboardingComplete} />}
