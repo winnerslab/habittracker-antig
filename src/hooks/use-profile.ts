@@ -8,6 +8,7 @@ interface Profile {
     id: string;
     full_name: string | null;
     avatar_url: string | null;
+    has_seen_onboarding: boolean;
 }
 
 export const useProfile = () => {
@@ -31,7 +32,7 @@ export const useProfile = () => {
             if (error) {
                 console.error("Error fetching profile:", error);
             } else if (data) {
-                setProfile(data as Profile);
+                setProfile(data as unknown as Profile);
             }
             setLoading(false);
         };
@@ -70,6 +71,22 @@ export const useProfile = () => {
         }
     };
 
+    const completeOnboarding = async () => {
+        if (!user) return;
+
+        const { error } = await supabase
+            .from("profiles")
+            // @ts-ignore - column exists in db but types not regenerated
+            .update({ has_seen_onboarding: true })
+            .eq("id", user.id);
+
+        if (error) {
+            console.error("Error completing onboarding:", error);
+        } else {
+            setProfile((prev) => prev ? { ...prev, has_seen_onboarding: true } : null);
+        }
+    };
+
     const uploadAvatar = async (file: File): Promise<string> => {
         if (!user) throw new Error("User not authenticated");
 
@@ -94,5 +111,5 @@ export const useProfile = () => {
         return publicUrl;
     };
 
-    return { profile, loading, updateProfile, updateAvatar, uploadAvatar };
+    return { profile, loading, updateProfile, updateAvatar, uploadAvatar, completeOnboarding };
 };

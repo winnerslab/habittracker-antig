@@ -14,6 +14,7 @@ const BugReportDialog = dynamic(() => import("./bug-report-dialog").then((mod) =
 const UpgradeDialog = dynamic(() => import("./upgrade-dialog").then((mod) => mod.UpgradeDialog), { ssr: false });
 import { StreakCounter } from "./streak-counter";
 import { HabitStreakBadge } from "./habit-streak-badge";
+import { useProfile } from "@/hooks/use-profile";
 import { UserProfile } from "@/features/profile/components/user-profile";
 import { Onboarding } from "@/features/onboarding/components/onboarding";
 import { Button } from "@/components/ui/button";
@@ -67,15 +68,16 @@ export const HabitTracker = () => {
     const [showOnboarding, setShowOnboarding] = useState(false);
     const [namesCollapsed, setNamesCollapsed] = useState(false);
 
+    const { profile, loading: profileLoading, completeOnboarding } = useProfile();
+
     useEffect(() => {
-        const hasSeenOnboarding = localStorage.getItem("onboarding-completed");
-        if (!hasSeenOnboarding) {
+        if (!profileLoading && profile && !profile.has_seen_onboarding) {
             setShowOnboarding(true);
         }
-    }, []);
+    }, [profile, profileLoading]);
 
-    const handleOnboardingComplete = () => {
-        localStorage.setItem("onboarding-completed", "true");
+    const handleOnboardingComplete = async () => {
+        await completeOnboarding();
         setShowOnboarding(false);
     };
     const [bugReportOpen, setBugReportOpen] = useState(false);
