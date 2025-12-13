@@ -333,7 +333,7 @@ export const HabitTracker = () => {
                 {/* Bottom Section: Chart and Progress Bars */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     {/* Monthly Progress Chart */}
-                    <div className="bg-card rounded-lg border border-border p-3 sm:p-4">
+                    <div className="bg-card rounded-lg border border-border p-3 sm:p-4 flex flex-col">
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-base sm:text-lg font-semibold text-foreground">Monthly Progress</h2>
                             <div className="flex items-center gap-1">

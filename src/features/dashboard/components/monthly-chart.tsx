@@ -20,7 +20,7 @@ export const MonthlyChart = ({ habits, completions, daysInMonth, currentDay }: M
     });
 
     return (
-        <div className="w-full h-48 mt-4">
+        <div className="w-full mt-4 flex-1 min-h-[12rem]">
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
