@@ -18,7 +18,6 @@ export const SubscriptionPage = () => {
 
     // Paystack Config
     const config = {
-        reference: (new Date()).getTime().toString(),
         email: user?.email || "",
         amount: 5000, // 50.00 ZAR
         currency: "ZAR",
@@ -28,14 +27,9 @@ export const SubscriptionPage = () => {
     const initializePayment = usePaystackPayment(config);
 
     const onSuccess = async (reference: any) => {
-        // Reference returned by Paystack might be an object or string depending on implementation
-        // Usually it's an object { message: "Approved", reference: "..." }
-        // But verifyPaystackPayment expects the reference string we sent (or the one returned).
-        // Let's use the one we sent or the 'trxref' from return.
-
-        // Paystack returns implementation: 
-        // { reference: "...", message: "...", status: "success", trans: "..." }
-        const refId = reference.reference || config.reference;
+        // Paystack returns { reference: "...", message: "...", status: "success", trans: "..." }
+        // We use the reference returned by Paystack
+        const refId = reference.reference;
 
         try {
             setUpgradeLoading(true);
